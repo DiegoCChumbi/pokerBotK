@@ -1,0 +1,192 @@
+/* Hoja de Estilos Textual (TCSS) para PokerCockpitApp */
+
+Screen {
+    background: #111827;
+    color: #f3f4f6;
+}
+
+#header_bar {
+    dock: top;
+    height: 3;
+    background: #1f2937;
+    color: #60a5fa;
+    content-align: center middle;
+    text-style: bold;
+    border-bottom: solid #374151;
+}
+
+#main_cockpit_grid {
+    layout: grid;
+    grid-size: 2 2;
+    grid-columns: 1fr 1fr;
+    grid-rows: 1fr 1fr;
+    padding: 1;
+    grid-gutter: 1;
+}
+
+/* ZONA 1: CARTAS */
+#cards_zone {
+    border: heavy #3b82f6;
+    padding: 1;
+    background: #1e293b;
+}
+
+.zone-title {
+    text-style: bold;
+    color: #93c5fd;
+    margin-bottom: 1;
+}
+
+.cards-row {
+    height: 3;
+    margin-bottom: 1;
+    align: left middle;
+}
+
+CardInput {
+    width: 8;
+    height: 3;
+    margin-right: 1;
+    background: #0f172a;
+    border: tall #475569;
+    color: #f8fafc;
+    text-align: center;
+    text-style: bold;
+}
+
+CardInput:focus {
+    border: tall #38bdf8;
+    background: #1e3a8a;
+}
+
+.visual-card-preview {
+    margin-left: 1;
+    padding-left: 1;
+    content-align: left middle;
+    text-style: bold;
+}
+
+/* ZONA 2: FINANZAS */
+#finance_zone {
+    border: heavy #10b981;
+    padding: 1;
+    background: #064e3b;
+}
+
+.finance-row {
+    height: 3;
+    margin-bottom: 1;
+    align: left middle;
+}
+
+FinanceInput {
+    width: 16;
+    height: 3;
+    margin-right: 2;
+    background: #022c22;
+    border: tall #059669;
+    color: #a7f3d0;
+    text-style: bold;
+}
+
+FinanceInput:focus {
+    border: tall #34d399;
+    background: #065f46;
+}
+
+#live_pot_odds_preview {
+    margin-top: 1;
+    color: #6ee7b7;
+    text-style: italic;
+}
+
+/* ZONA 3: CONTEXTO */
+#context_zone {
+    border: heavy #8b5cf6;
+    padding: 1;
+    background: #2e1065;
+}
+
+.toggle-row {
+    height: 3;
+    margin-bottom: 1;
+    align: left middle;
+}
+
+.toggle-btn {
+    min-width: 6;
+    height: 3;
+    margin-right: 1;
+    background: #4c1d95;
+    color: #c4b5fd;
+    border: none;
+}
+
+.toggle-btn.-selected {
+    background: #a855f7;
+    color: #ffffff;
+    text-style: bold;
+}
+
+#json_payload_preview {
+    margin-top: 1;
+    color: #d8b4fe;
+    height: 4;
+    overflow-y: auto;
+}
+
+/* ZONA 4: PANEL DE DECISIÓN (CEREBRO) */
+#decision_banner {
+    border: double #e2e8f0;
+    align: center middle;
+    content-align: center middle;
+    padding: 1;
+}
+
+#decision_headline {
+    text-align: center;
+    text-style: bold;
+    height: 3;
+    content-align: center middle;
+}
+
+#decision_submetrics {
+    text-align: center;
+    color: #e2e8f0;
+    margin-top: 1;
+}
+
+/* ESTADOS DEL BANNER DE DECISIÓN */
+.state-idle {
+    background: #374151;
+    border: heavy #6b7280;
+    color: #d1d5db;
+}
+
+.state-computing {
+    background: #1e3a8a;
+    border: heavy #38bdf8;
+    color: #e0f2fe;
+}
+
+/* FOLD: ROJO */
+.state-fold {
+    background: #991b1b;
+    border: heavy #ef4444;
+    color: #ffffff;
+}
+
+/* CALL / CHECK: VERDE */
+.state-call {
+    background: #065f46;
+    border: heavy #10b981;
+    color: #ecfdf5;
+}
+
+/* RAISE: AMARILLO PARPADEANTE */
+.state-raise {
+    background: #b45309;
+    border: heavy #f59e0b;
+    color: #fef3c7;
+    text-style: bold blink;
+}
