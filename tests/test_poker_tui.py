@@ -56,6 +56,23 @@ class TestDummyBrainBackend(unittest.IsolatedAsyncioTestCase):
         self.assertGreater(resp.equity, 0.70)
         self.assertAlmostEqual(resp.pot_odds, 50 / 250, places=2)
 
+    async def test_dummy_raise_exceeding_stack_becomes_all_in(self):
+        backend = DummyBrainBackend(simulated_delay_sec=0.01)
+        # Situación del usuario: stack 1000, pot 500, to_call 470
+        payload = {
+            "hand": ["As", "Kd"],
+            "board": ["Ah", "7c", "2s"],
+            "stack": 1000,
+            "pot": 500,
+            "to_call": 470,
+            "active": 4,
+            "pos": "CO",
+        }
+        resp = await backend.evaluate_table_state(payload)
+        self.assertEqual(resp.action, "ALL_IN")
+        self.assertEqual(resp.amount, 1000)
+        self.assertLessEqual(resp.amount, payload["stack"])
+
     async def test_dummy_fold_state(self):
         backend = DummyBrainBackend(simulated_delay_sec=0.01)
         payload = {

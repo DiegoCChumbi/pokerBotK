@@ -57,6 +57,7 @@ class DummyBrainBackend:
 
         hand = [canonicalize_card(c) for c in payload.get("hand", [])]
         board = [canonicalize_card(c) for c in payload.get("board", [])]
+        hero_stack = int(payload.get("stack", 1000))
         pot = int(payload.get("pot", 0))
         to_call = int(payload.get("to_call", 0))
         pot_odds = to_call / (pot + to_call) if (pot + to_call) > 0 and to_call > 0 else 0.0
@@ -69,11 +70,20 @@ class DummyBrainBackend:
         )
 
         if has_ace_or_pair and pot > 0:
-            # RAISE (Amarillo parpadeante)
-            raise_amount = max(to_call * 3, int(pot * 0.75), 50)
+            # RAISE / ALL_IN: No podemos apostar más de lo que tenemos en el stack
+            raw_raise = max(to_call * 3, int(pot * 0.75), 50)
+            if hero_stack <= to_call or raw_raise >= hero_stack:
+                return BrainResponse(
+                    action="ALL_IN",
+                    amount=hero_stack,
+                    equity=0.76,
+                    pot_odds=pot_odds,
+                    reasoning="VALUE_ALL_IN_STACK_COMMITTED_DEMO",
+                    latency_ms=elapsed_ms,
+                )
             return BrainResponse(
                 action="RAISE",
-                amount=raise_amount,
+                amount=raw_raise,
                 equity=0.76,
                 pot_odds=pot_odds,
                 reasoning="VALUE_RAISE_DEMO_STRONG_HAND",
@@ -81,6 +91,15 @@ class DummyBrainBackend:
             )
         elif to_call == 0 or (to_call <= max(10, pot * 0.35) and len(hand) == 2):
             # CALL o CHECK (Verde)
+            if to_call >= hero_stack:
+                return BrainResponse(
+                    action="ALL_IN",
+                    amount=hero_stack,
+                    equity=0.48,
+                    pot_odds=pot_odds,
+                    reasoning="CALL_ALL_IN_DEMO",
+                    latency_ms=elapsed_ms,
+                )
             action_type = "CALL" if to_call > 0 else "CHECK"
             return BrainResponse(
                 action=action_type,
