@@ -1,10 +1,10 @@
-# Arquitectura
+## Arquitectura
 
 El sistema son **un bot** y **dos arneses de simulación** que le hablan por el
 mismo contrato. El bot no sabe si la partida es real, manual o un replay: recibe
 un `GameState` y devuelve un `BotDecision`.
 
-## 1. Componentes
+### 1. Componentes
 
 ```mermaid
 flowchart LR
@@ -40,9 +40,9 @@ flowchart LR
 | `KaggleParquetLoader` | `poker_benchmark/parquet_loader.py` | Reconstruir snapshots cronológicos desde Parquet sin filtrar cartas futuras. |
 | `ShadowReplayRunner` | `poker_benchmark/shadow_evaluator.py` | Pasar cada snapshot por el bot y agregar el informe. |
 
-## 2. Contratos
+### 2. Contratos
 
-### Entrada: JSON de mesa → `GameState`
+#### Entrada: JSON de mesa → `GameState`
 
 `WatchdogBotClient.parse_game_state()` acepta un diccionario con estos campos
 (todos opcionales; los ausentes toman el valor por defecto indicado. Si se
@@ -67,7 +67,7 @@ definición canónica está en `poker_bot/models.py`.
 El loader de Parquet y el bridge de la TUI construyen exactamente este JSON;
 así el bot se prueba en los dos modos sin adaptadores distintos.
 
-### Salida: `BotDecision`
+#### Salida: `BotDecision`
 
 | Campo | Tipo | Semántica |
 |---|---|---|
@@ -80,7 +80,7 @@ así el bot se prueba en los dos modos sin adaptadores distintos.
 `DummyBrainBackend` devuelve un `BrainResponse` equivalente para la TUI, con
 `equity` y `pot_odds` añadidos para el panel.
 
-## 3. Flujo de un turno
+### 3. Flujo de un turno
 
 ```mermaid
 sequenceDiagram
@@ -109,7 +109,7 @@ sequenceDiagram
 
 Detalle de cada paso algorítmico en [`algoritmos.md`](algoritmos.md#a-orden-de-aplicación-del-pipeline).
 
-## 4. Pipeline de decisión (resumen)
+### 4. Pipeline de decisión (resumen)
 
 | Paso | Qué hace | Dónde |
 |---|---|---|
@@ -122,9 +122,9 @@ Detalle de cada paso algorítmico en [`algoritmos.md`](algoritmos.md#a-orden-de-
 Los umbrales concretos están en
 [`algoritmos.md § B`](algoritmos.md#b-constantes-y-umbrales).
 
-## 5. Los dos flujos de simulación
+### 5. Los dos flujos de simulación
 
-### Manual: TUI → bot
+#### Manual: TUI → bot
 
 1. La TUI mantiene el estado en reactivos (`hand_cards`, `board_cards`, `pot_size`, ...).
    Los palos admiten notación española (`e`/`c`/`d`/`t`) y se canonizan a
@@ -136,7 +136,7 @@ Los umbrales concretos están en
    sin cargar el motor.
 4. La respuesta se pinta en `DecisionBanner`.
 
-### Shadow replay: Parquet → bot → informe
+#### Shadow replay: Parquet → bot → informe
 
 1. `KaggleParquetLoader.iter_snapshots()` lee `matches`, `hands` y `actions`.
 2. Reconstruye el estado **acción a acción**: pot acumulado, `to_call` por calle,
@@ -151,7 +151,7 @@ La invariante del replay es **no filtrar el futuro**: en preflop el board va
 vacío, en flop solo 3 cartas, y las cartas del rival nunca entran en el estado.
 Ver [`datos.md § 3`](datos.md#3-reconstrucción-de-snapshots).
 
-## 6. SLA y watchdog
+### 6. SLA y watchdog
 
 | Parámetro | Valor | Efecto |
 |---|---|---|
@@ -164,7 +164,7 @@ Ver [`datos.md § 3`](datos.md#3-reconstrucción-de-snapshots).
 El bot nunca debe superar el límite de 5 s de la mesa; los 0.5 s de margen
 absorben la red.
 
-## 7. Puntos de extensión
+### 7. Puntos de extensión
 
 - **Sala real:** implementar `TransportAdapter` (`receive_game_state` / `send_action`)
   y pasarlo a `create_bot`. El resto del bot no cambia.
@@ -173,7 +173,7 @@ absorben la red.
 - **Otro dataset:** producir el mismo JSON de mesa y alimentar `handle_turn`
   directamente; el replay solo necesita `DecisionSnapshot`.
 
-## 8. Glosario
+### 8. Glosario
 
 | Término | Significado |
 |---|---|
@@ -187,7 +187,7 @@ absorben la red.
 | **Arquetipo** | Etiqueta de estilo del rival: NIT, TAG, LAG, STATION, MANIAC. |
 | **Shadow replay** | Reproducir decisiones históricas contra el bot, sin jugar en vivo. |
 
-## 9. Decisiones y límites conocidos
+### 9. Decisiones y límites conocidos
 
 - **SQLite WAL + cola async.** Las escrituras no deben bloquear el turno. El
   precio es que `background_writer_loop()` debe estar corriendo; en el replay

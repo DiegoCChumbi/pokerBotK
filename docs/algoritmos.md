@@ -1,4 +1,4 @@
-# Algoritmos
+## Algoritmos
 
 Catálogo de los algoritmos que toman decisiones o calculan números en el
 sistema. Cada ficha indica **dónde vive**, **para qué se usa**, **qué recibe**,
@@ -8,7 +8,7 @@ getters) no se documentan.
 Regla de mantenimiento: los umbrales y fórmulas viven **solo aquí**. Si cambian
 en el código, se actualiza esta página.
 
-## A. Orden de aplicación del pipeline
+### A. Orden de aplicación del pipeline
 
 ```mermaid
 flowchart TD
@@ -33,7 +33,7 @@ flowchart TD
 3. La inferencia ajusta umbrales (ficha 11).
 4. La cascada elige acción (ficha 12) y la dimensiona (ficha 13).
 
-## 1. Evaluación de manos (5–7 cartas)
+### 1. Evaluación de manos (5–7 cartas)
 
 - **Ubicación:** `poker_bot/card_evaluator.py` → `evaluate_5card`, `evaluate_hand`
 - **Propósito:** comparar la fuerza de dos manos en showdown.
@@ -47,7 +47,7 @@ flowchart TD
 - **Límites:** sin *kickers* por palo, sin cartas comodín; es Python puro, no
   busca rendimiento extremo.
 
-## 2. Chen score preflop
+### 2. Chen score preflop
 
 - **Ubicación:** `poker_bot/heuristic_engine.py` → `evaluate_preflop_chen_score`
 - **Propósito:** estimación de fuerza preflop, usada **solo como fallback**
@@ -60,7 +60,7 @@ flowchart TD
 - **Límites:** es una aproximación histórica, no equity real; no considera
   número de rivales ni posición.
 
-## 3. Equity por Monte Carlo
+### 3. Equity por Monte Carlo
 
 - **Ubicación:** `poker_bot/heuristic_engine.py` → `estimate_range_weighted_monte_carlo`
 - **Propósito:** probabilidad de ganar o empatar en showdown.
@@ -77,7 +77,7 @@ flowchart TD
   reciben manos aleatorias, así que no es *range-weighted* pese al nombre. La
   comprobación de tiempo es por lote, por lo que puede pasarse hasta un lote.
 
-## 4. Pot odds
+### 4. Pot odds
 
 - **Ubicación:** `poker_bot/heuristic_engine.py` → `calculate_pot_odds`
 - **Entradas:** `to_call`, `pot`.
@@ -87,7 +87,7 @@ flowchart TD
 - **Límites:** asume que el `pot` recibido no incluye el `to_call` (así lo
   construyen el loader y el bridge).
 
-## 5. SPR (Stack-to-Pot Ratio)
+### 5. SPR (Stack-to-Pot Ratio)
 
 - **Ubicación:** `poker_bot/heuristic_engine.py` → `calculate_spr`
 - **Entradas:** `effective_stack`, `pot`.
@@ -97,7 +97,7 @@ flowchart TD
 - **Límites:** usa el stack del héroe, no el mínimo de los stacks (no es
   estrictamente "efectivo" en mesas multiway).
 
-## 6. EV del call
+### 6. EV del call
 
 - **Ubicación:** `poker_bot/heuristic_engine.py` → `evaluate_state`
 - **Entradas:** `equity`, `pot`, `to_call`.
@@ -106,7 +106,7 @@ flowchart TD
   diagnóstico; la cascada decide con equity y pot odds, no con este valor.
 - **Límites:** EV de una sola calle, sin implied odds ni fold equity.
 
-## 7. Clasificación de fuerza
+### 7. Clasificación de fuerza
 
 - **Ubicación:** `poker_bot/heuristic_engine.py` → `evaluate_state`
 - **Entradas:** `equity`.
@@ -114,7 +114,7 @@ flowchart TD
   `DRAW` ≥ 0.28 · `TRASH` < 0.28.
 - **Uso:** etiqueta informativa en `EquityMetrics`; **no** modifica la decisión.
 
-## 8. Métricas derivadas del tracker (SQL)
+### 8. Métricas derivadas del tracker (SQL)
 
 - **Ubicación:** `poker_bot/exploitative_tracker.py` → vista `v_opponent_profiles`
 - **Entradas:** filas de `hand_participants` y `hand_actions`.
@@ -132,7 +132,7 @@ flowchart TD
   `wtsd_count` **nunca se actualizan** en el código actual → `three_bet_pct` y
   `wtsd` quedan `NULL` (ver § C).
 
-## 9. Smoothing bayesiano y confianza
+### 9. Smoothing bayesiano y confianza
 
 - **Ubicación:** `poker_bot/exploitative_tracker.py` → `get_profiles_for_table`
 - **Entradas:** media muestral de VPIP/PFR/AF/fold, `n` manos observadas.
@@ -146,7 +146,7 @@ flowchart TD
 - **Límites:** no suaviza el 3-bet; sin filas en la BD devuelve el prior con
   `weight = 0` y arquetipo `UNKNOWN`.
 
-## 10. Clasificación de arquetipo
+### 10. Clasificación de arquetipo
 
 - **Ubicación:** `poker_bot/exploitative_tracker.py` → `classify_archetype`
 - **Entradas:** `n` manos, VPIP, PFR, AF (ya suavizados).
@@ -163,7 +163,7 @@ flowchart TD
 - **Límites:** el orden importa (una estación con PFR bajo cae en 4 antes que en
   5); hay huecos que terminan en `UNKNOWN` aunque haya muestra suficiente.
 
-## 11. Ajuste explotativo de umbrales
+### 11. Ajuste explotativo de umbrales
 
 - **Ubicación:** `poker_bot/inference_engine.py` → `compute_exploitative_adjustments`
 - **Entradas:** `metrics.pot_odds`, arquetipo, `confidence_weight = w`.
@@ -182,7 +182,7 @@ flowchart TD
 - **Límites:** LAG y UNKNOWN no tienen rama propia; la cascada de bluff exige
   `bluff_freq ≥ 0.30`, umbral que solo alcanza NIT (necesita `w > 0.286`).
 
-## 12. Cascada de decisión
+### 12. Cascada de decisión
 
 - **Ubicación:** `poker_bot/inference_engine.py` → `_resolve_action`
 - **Entradas:** `GameState`, `EquityMetrics`, `OpponentProfile`, los tres
@@ -201,7 +201,7 @@ flowchart TD
 - **Límites:** no hay aleatorización (el bluff es determinista); `ALL_IN` nunca
   se emite como acción, se representa como `RAISE` por `max_raise`.
 
-## 13. Sizing de apuesta
+### 13. Sizing de apuesta
 
 - **Ubicación:** `poker_bot/inference_engine.py` → `calculate_optimal_bet_sizing`
 - **Entradas:** `GameState`, arquetipo rival, `is_value`.
@@ -215,7 +215,7 @@ flowchart TD
 - **Límites:** si `min_raise > max_raise` el resultado puede superar `max_raise`;
   la cascada (paso 2) exige después `sizing ≤ max_raise` y cae a `CALL`/`CHECK`.
 
-## 14. Reconstrucción de snapshots (shadow replay)
+### 14. Reconstrucción de snapshots (shadow replay)
 
 - **Ubicación:** `poker_benchmark/parquet_loader.py` → `iter_snapshots`
 - **Entradas:** `matches.parquet`, `hands.parquet`, `actions.parquet` y los
@@ -236,7 +236,7 @@ flowchart TD
 - **Límites:** `min_raise` es una aproximación (la subida mínima real depende de
   la última subida); `max_matches` toma el orden físico del Parquet.
 
-## 15. Agregación del informe
+### 15. Agregación del informe
 
 - **Ubicación:** `poker_benchmark/shadow_evaluator.py` → `ShadowBenchmarkReport`
 - **Entradas:** pares `(DecisionSnapshot, BotDecision)`.
@@ -253,7 +253,7 @@ flowchart TD
   comprueba que el raise fuera correcto, solo que la mano se ganó; los
   percentiles son aproximados (sin interpolación).
 
-## 16. Dummy brain (demo de la TUI)
+### 16. Dummy brain (demo de la TUI)
 
 - **Ubicación:** `poker_tui/backend_bridge.py` → `DummyBrainBackend`
 - **Propósito:** probar la reactividad y los colores de la TUI sin cargar el
@@ -266,7 +266,7 @@ flowchart TD
 - **Límites:** es una demo, no una estrategia; el equity es fijo (0.76 / 0.48 /
   0.18) y el `LivePokerBotBridge` siempre reporta `equity = 0.0`.
 
-## B. Constantes y umbrales
+### B. Constantes y umbrales
 
 | Constante | Valor | Dónde manda |
 |---|---|---|
@@ -284,7 +284,7 @@ flowchart TD
 | Sizing | 3×BB preflop · 60 % pot · 80 % vs station · 40 % bluff | sizing |
 | Priors | VPIP 0.24 · PFR 0.16 · 3-bet 0.06 · AF 1.5 · fold 0.45 | tracker |
 
-## C. Cabos sueltos y discrepancias
+### C. Cabos sueltos y discrepancias
 
 Hallazgos al leer el código que condicionan qué mide el simulador. **No se han
 corregido**: esta sección es el registro.

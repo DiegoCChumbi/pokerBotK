@@ -1,11 +1,11 @@
-# Datos
+## Datos
 
 Dos fuentes de datos independientes: la **SQLite del tracker** (lo que el bot
 aprende mientras juega) y el **dataset Parquet** (lo que el replay usa para
 simular). No se mezclan: el replay alimenta al bot, pero no vuelca en la SQLite
 salvo que se arranque el writer (ver § 5).
 
-## 1. SQLite del tracker
+### 1. SQLite del tracker
 
 - **Archivo por defecto:** `pokerfight_tracker.db` (configurable en
   `create_bot(db_path=...)`).
@@ -26,7 +26,7 @@ salvo que se arranque el writer (ver § 5).
 participantes. La vista `v_opponent_profiles` deriva los porcentajes (fórmulas
 en [`algoritmos.md § 8`](algoritmos.md#8-métricas-derivadas-del-tracker-sql)).
 
-### Cómo se rellenan los flags
+#### Cómo se rellenan los flags
 
 `record_game_state_sync` hace *upsert* de la mano, `INSERT OR IGNORE` de los
 participantes, inserta el histórico de acciones y, por cada acción preflop:
@@ -37,7 +37,7 @@ participantes, inserta el histórico de acciones y, por cada acción preflop:
 Después recalcula `player_stats_summary` para todos los participantes de la
 mano. Los flags de 3-bet y showdown no se tocan (§ 5).
 
-## 2. Dataset Parquet
+### 2. Dataset Parquet
 
 - **Directorio:** `data/kaggle_llm_poker/`.
 - **Esquema completo y semántica:** [`data/kaggle_llm_poker/schema.md`](../data/kaggle_llm_poker/schema.md).
@@ -57,7 +57,7 @@ Contexto que sí importa para interpretar el informe:
   investigación), pero el loader **solo expone al bot lo que sería visible**.
 - `fair_deal` solo está presente en ~6 % de las manos; no se usa.
 
-## 3. Reconstrucción de snapshots
+### 3. Reconstrucción de snapshots
 
 Cada `DecisionSnapshot` contiene:
 
@@ -79,7 +79,7 @@ Invariante de **no fuga de futuro**:
 El algoritmo completo está en
 [`algoritmos.md § 14`](algoritmos.md#14-reconstrucción-de-snapshots-shadow-replay).
 
-## 4. Cómo leer el informe del benchmark
+### 4. Cómo leer el informe del benchmark
 
 `python -m poker_benchmark` imprime cuatro bloques:
 
@@ -95,7 +95,7 @@ El algoritmo completo está en
 4. **Perfiles SQLite.** VPIP, PFR, AF, fold % y arquetipo de cada rival. En la
    práctica son los priors, porque el replay no persiste (§ 5).
 
-## 5. Límites conocidos
+### 5. Límites conocidos
 
 1. **El replay no escribe en SQLite.** `ShadowReplayRunner` encola estados pero
    nunca arranca `background_writer_loop()` ni llama a
